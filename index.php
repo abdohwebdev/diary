@@ -2,8 +2,10 @@
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
-require_once("classes/Connection.php");
-require_once("classes/Authentication.php");
+
+spl_autoload_register(function ($class_name) {
+    include 'classes/'.$class_name . '.php';
+});
 
 if (isset($_POST['signUp'])) {
     $email = $_POST['signUpEmail'];
@@ -60,11 +62,11 @@ if (isset($_POST['logIn'])) {
                         <div class="d-flex flex-column me-2">
                             <input class="form-control" type="email" name="logInEmail" placeholder="Email Address" value="<?php echo htmlspecialchars($_POST['logInEmail'] ?? ""); ?>">
                             <?php
-                            if (isset($_POST['logIn']) && isset($authentication->errors['email'])):
+                            if (isset($_POST['logIn']) && isset(Validation::$errors['email'])):
                                 ?>
                                 <div class="error-message">
                                     <?php
-                                    foreach ($authentication->errors['email'] as $error):
+                                    foreach (Validation::$errors['email'] as $error):
                                         echo $error . "<br>";
                                     endforeach;
                                     ?>
@@ -76,11 +78,11 @@ if (isset($_POST['logIn'])) {
                         <div class="d-flex flex-column me-2">
                             <input class="form-control" type="password" name="logInPassword" placeholder="Password">
                             <?php
-                            if (isset($_POST['logIn']) && isset($authentication->errors['password'])):
+                            if (isset($_POST['logIn']) && isset(Validation::$errors['password'])):
                                 ?>
                                 <div class="error-message">
                                     <?php
-                                    foreach ($authentication->errors['password'] as $error):
+                                    foreach (Validation::$errors['password'] as $error):
                                         echo $error . "<br>";
                                     endforeach;
                                     ?>
@@ -92,11 +94,11 @@ if (isset($_POST['logIn'])) {
                         <button type="submit" class="btn btn-primary" name="logIn">Login</button>
                     </form>
                     <?php
-                    if (isset($_POST['logIn']) && isset($authentication->errors['general'])):
+                    if (isset($_POST['logIn']) && isset(Validation::$errors['general'])):
                         ?>
                         <div class="error-message">
                             <?php
-                            foreach ($authentication->errors['general'] as $error):
+                            foreach (Validation::$errors['general'] as $error):
                                 echo $error . "<br>";
                             endforeach;
                             ?>
@@ -116,11 +118,11 @@ if (isset($_POST['logIn'])) {
                 <input type="email" class="form-control" id="email" name="signUpEmail" placeholder="Email Address"
                     value="<?php echo htmlspecialchars($_POST['signUpEmail'] ?? ""); ?>">
                 <?php
-                if (isset($_POST['signUp']) && isset($authentication->errors['email'])):
+                if (isset($_POST['signUp']) && isset(Validation::$errors['email'])):
                     ?>
                     <div class="error-message">
                         <?php
-                        foreach ($authentication->errors['email'] as $error):
+                        foreach (Validation::$errors['email'] as $error):
                             echo $error . "<br>";
                         endforeach;
                         ?>
@@ -133,11 +135,11 @@ if (isset($_POST['logIn'])) {
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" name="signUpPassword" placeholder="Password">
                 <?php
-                if (isset($_POST['signUp']) && isset($authentication->errors['password'])):
+                if (isset($_POST['signUp']) && isset(Validation::$errors['password'])):
                     ?>
                     <div class="error-message">
                         <?php
-                        foreach ($authentication->errors['password'] as $error):
+                        foreach (Validation::$errors['password'] as $error):
                             echo $error . "<br>";
                         endforeach;
                         ?>
@@ -151,11 +153,11 @@ if (isset($_POST['logIn'])) {
                 <input type="password" class="form-control" id="password2" name="passwordConfirm"
                     placeholder="Retype password">
                 <?php
-                if (isset($_POST['signUp']) && isset($authentication->errors['password confirmation'])):
+                if (isset($_POST['signUp']) && isset(Validation::$errors['password confirmation'])):
                     ?>
                     <div class="error-message">
                         <?php
-                        foreach ($authentication->errors['password confirmation'] as $error):
+                        foreach (Validation::$errors['password confirmation'] as $error):
                             echo $error . "<br>";
                         endforeach;
                         ?>

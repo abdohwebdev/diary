@@ -1,4 +1,7 @@
 <?php
+spl_autoload_register(function ($class_name) {
+    include 'classes/'.$class_name . '.php';
+});
 class Authentication
 {
     public PDO $pdo;
@@ -28,24 +31,24 @@ class Authentication
     {
         // validating required fields
         $requiredFields = ["email" => $email, "password" => $password];
-        $this->validateRequiredFields($requiredFields);
+        Validation::validateRequiredFields($requiredFields);
 
         // validating email address
-        if (!isset($this->errors["email"])) {
-            $this->validateEmailSyntax($email);
-            $this->checkEmailAvailability($email);
+        if (!isset(Validation::$errors["email"])) {
+            Validation::validateEmailSyntax($email);
+            Validation::checkEmailAvailability($email,$this->pdo);
         }
 
         // validating password
-        if (!isset($this->errors["password"])) {
-            $this->validatePassword($password);
+        if (!isset(Validation::$errors["password"])) {
+            Validation::validatePassword($password);
         }
 
-        if (!isset($this->errors["password"])) {
-            $this->validatePasswordMatch($password, $passwordConfirm);
+        if (!isset(Validation::$errors["password"])) {
+            Validation::validatePasswordMatch($password, $passwordConfirm);
         }
 
-        if ($this->errors == []) {
+        if (Validation::$errors == []) {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             $statement = $this->pdo->prepare("INSERT INTO users (email,password) Value(:email,:password)");
             $statement->bindValue(":email", $email);
@@ -75,16 +78,16 @@ class Authentication
     {
         // validating required fields
         $requiredFields = ["email" => $email, "password" => $password];
-        $this->validateRequiredFields($requiredFields);
+        Validation::validateRequiredFields($requiredFields);
 
         // validating email address
-        if (!isset($this->errors["email"])) {
-            $this->validateEmailSyntax($email);
+        if (!isset(Validation::$errors["email"])) {
+            Validation::validateEmailSyntax($email);
         }
 
         // check login info
-        if ($this->errors == []) {
-            return $this->checkLoginInfo($email, $password);
+        if (Validation::$errors == []) {
+            return Validation::checkLoginInfo($email,$password,$this->pdo);
         }else{
             return false;
         }
@@ -113,67 +116,5 @@ class Authentication
     {
         filter_var($email, FILTER_VALIDATE_EMAIL) ?: $this->errors["email"][] = "email is not valid";
     }
-    private function checkEmailAvailability(string $email)
-    {
-        if (!isset($this->errors["email"])) {
-            $statement = $this->pdo->prepare("SELECT * FROM users WHERE email=:email");
-            $statement->bindValue(":email", $email);
-            $statement->execute();
-            if ($statement->fetch()) {
-                $this->errors['email'][] = "this email is already used";
-            }
-        }
-    }
 
-    private function validatePassword(string $password)
-    {
-        if (strlen($password) < 8) {
-            $this->errors["password"][] = "password should be more than 8 chars";
-        }
-
-        if (!preg_match('/[0-9]/', $password)) {
-            $this->errors["password"][] = "password should include numbers";
-        }
-
-        if (!preg_match('/[a-z]/', $password)) {
-            $this->errors["password"][] = "password should include small letters";
-        }
-
-        if (!preg_match('/[A-Z]/', $password)) {
-            $this->errors["password"][] = "password should include capital letters";
-        }
-
-        if (!preg_match('/[^a-zA-Z0-9]/', $password)) {
-            $this->errors["password"][] = "password should include symbols";
-        }
-    }
-
-    private function validatePasswordMatch(string $password, string $passwordConfirm)
-    {
-        if ($password != $passwordConfirm) {
-            $this->errors["password confirmation"][] = "the two passwords should match";
-        }
-    }
-
-    private function checkLoginInfo(string $email, string $password)
-    {
-        $statement = $this->pdo->prepare("SELECT * FROM users WHERE email=:email LIMIT 1");
-        $statement->bindValue(":email", $email);
-        $statement->execute();
-        $user = $statement->fetch();
-        if($user){
-            if(password_verify($password,$user['password'])){
-                session_start();
-                $_SESSION['userId'] = $user['id'];
-                session_write_close();
-                return true;
-            }else{
-                $this->errors['general'][] = "wrong email or password";
-                return false;
-            }
-        }else{
-            $this->errors['general'][] = "wrong email or password";
-            return false;
-        }
-    }
 }

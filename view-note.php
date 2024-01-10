@@ -10,18 +10,32 @@ if (!isset($_SESSION['userId'])) {
     header("location:index.php");
 }
 
-if (isset($_POST['logout'])) {
-    $connection = new Connection();
-    $authentication = new Authentication($connection->pdo);
-    $authentication->logOut();
+$noteId = $_GET['id'];
+if (!$noteId) {
+    header("location:dashboard.php");
 }
 
 $userId = $_SESSION['userId'];
 
 $connection = new Connection();
-$noteObject = new Note($connection->pdo, $userId);
 
-$notes = $noteObject->getNotes();
+if (isset($_POST['logout'])) {
+    $authentication = new Authentication($connection->pdo);
+    $authentication->logOut();
+}
+
+if (isset($_POST['delete'])) {
+    $note = new Note($connection->pdo, $userId);
+    $note->deleteNote($noteId);
+}
+
+$note = new Note($connection->pdo, $userId);
+
+$note = $note->getNoteById($noteId);
+
+if (!$note) {
+    header('location:dashboard.php');
+}
 
 ?>
 <!DOCTYPE html>
@@ -56,49 +70,45 @@ $notes = $noteObject->getNotes();
         </div>
     </nav>
     <div class="container">
-        <h3 class="text-center mt-3 text-light">My Diary</h3>
-        <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert alert-success">
+        <div class="bg-white w-50 mx-auto p-3 my-4">
+            <h3 class="text-center">
                 <?php
-                echo $_SESSION['success'];
-                unset($_SESSION['success']);
+                if ($note['title']) {
+                    echo htmlspecialchars($note['title']);
+                } else {
+                    echo htmlspecialchars($note['created_at']);
+                }
                 ?>
+            </h3>
+            <p class>
+                <?php echo nl2br(htmlspecialchars($note['body'])); ?>
+            </p>
+            <button class="btn btn-danger" id="deleteButton">Delete Note</button>
+            <div class="alert alert-danger mt-3" id="deleteAlert">
+                <p>This will delete the note permanently , are you sure ?</p>
+                <form class="d-flex justify-content-between" method="post">
+                    <button type="submit" class="btn btn-danger" name="delete">Delete</button>
+                    <button type="button" class="btn btn-secondary" id="cancelButton">Cancel</button>
+                </form>
             </div>
-        <?php endif; ?>
-        <?php if ($notes): ?>
-            <div class="row my-3">
-                <?php foreach ($notes as $note): ?>
-                    <div class="col-lg-3 mb-3">
-                        <div class="card h-100">
-                            <img src="/img/field2.jpg" class="card-img-top" alt="...">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">
-                                    <?php
-                                    if ($note['title']) {
-                                        echo htmlspecialchars($note['title']);
-                                    } else {
-                                        echo htmlspecialchars($note['created_at']);
-                                    }
-                                    ?>
-                                </h5>
-                                <p class="card-text">
-                                    <?php echo htmlspecialchars($noteObject->genrateExcerpt($note['body'])); ?>
-                                </p>
-                                <div class="d-flex justify-content-between mt-auto">
-                                    <a href="view-note.php?id=<?php echo $note['id']; ?>" class="btn btn-primary">View Note</a>
-                                    <a href="edit-note.php?id=<?php echo $note['id']; ?>" class="btn btn-secondary">Edit
-                                        Note</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
         crossorigin="anonymous"></script>
+    <script>
+        let deleteButton = document.querySelector('#deleteButton');
+        let deleteAlert = document.querySelector('#deleteAlert');
+        let cancelButton = document.querySelector('#cancelButton');
+
+        deleteButton.addEventListener('click', function () {
+            deleteAlert.style.display = 'block';
+        });
+
+        cancelButton.addEventListener('click',function(){
+            deleteAlert.style.display = 'none';
+        });
+    </script>
 </body>
 
 </html>
