@@ -94,7 +94,11 @@ $notes = $noteObject->getNotes();
                     </div>
                 <?php endforeach; ?>
             </div>
-        <?php endif; ?>
+        <?php else: ?>
+            <div class="alert alert-info text-center my-3">
+                You have no notes <a href="add-note.php">create one</a>
+            </div>
+        <?php endif; ?>    
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
