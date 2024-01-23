@@ -38,7 +38,7 @@ class Note
             $statement->bindValue(':title', $title);
             $statement->bindValue(':body', $body);
             if ($statement->execute()) {
-                $this->createMessage('success','Your note has been created successfully');
+                $this->createMessage('success', 'Your note has been created successfully');
                 return true;
             } else {
                 return false;
@@ -51,14 +51,26 @@ class Note
     /**
      * get user notes method
      */
-    public function getNotes()
+    public function getNotes(int $itemsPerPage = 100, int $page = 1)
     {
-        $statement = $this->pdo->prepare("SELECT * FROM notes WHERE user_id = :user_id ORDER BY id DESC");
+        $offset = ($page - 1) * $itemsPerPage;
+        $statement = $this->pdo->prepare("SELECT * FROM notes WHERE user_id = :user_id ORDER BY id DESC LIMIT $itemsPerPage OFFSET $offset");
         $statement->bindValue(':user_id', $this->userId);
         $statement->execute();
         return $statement->fetchAll();
     }
 
+
+    /**
+     * count number of notes method
+     */
+    public function countNotesNumber()
+    {
+        $statement = $this->pdo->prepare("SELECT COUNT(*) AS notesCount From notes WHERE user_id = :user_id");
+        $statement->bindValue(':user_id', $this->userId);
+        $statement->execute();
+        return $statement->fetchColumn();
+    }
     /**
      * get note by id method
      */
@@ -82,7 +94,7 @@ class Note
         $statement->bindValue(':user_id', $this->userId);
         $statement->bindValue(':note_id', $noteId);
         if ($statement->execute()) {
-            $this->createMessage('success','Your note has been deleted successfully');
+            $this->createMessage('success', 'Your note has been deleted successfully');
             return true;
         } else {
             return false;
@@ -109,13 +121,14 @@ class Note
         Validation::validateNoteTitle($title);
 
         if (Validation::$errors == []) {
-            $statement = $this->pdo->prepare("UPDATE notes SET title=:title , body=:body WHERE user_id=:user_id AND id=:note_id");
+            $updatedAt = date('Y-m-d H:i:s');
+            $statement = $this->pdo->prepare("UPDATE notes SET title=:title , body=:body ,updated_at=now() WHERE user_id=:user_id AND id=:note_id");
             $statement->bindValue(':user_id', $this->userId);
             $statement->bindValue(':title', $title);
             $statement->bindValue(':body', $body);
             $statement->bindValue(':note_id', $noteId);
             if ($statement->execute()) {
-                $this->createMessage('success','your note has been updated successfully');
+                $this->createMessage('success', 'your note has been updated successfully');
                 return true;
             } else {
                 return false;

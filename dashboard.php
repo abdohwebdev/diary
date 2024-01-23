@@ -21,8 +21,21 @@ $userId = $_SESSION['userId'];
 $connection = new Connection();
 $noteObject = new Note($connection->pdo, $userId);
 
-$notes = $noteObject->getNotes();
 
+$notesCount = $noteObject->countNotesNumber();
+
+$_SESSION['itemsPerPage'] = $_POST['itemsPerPage'] ?? $_SESSION['itemsPerPage'] ?? 5;
+$itemsPerPage = $_SESSION['itemsPerPage'];
+
+$numberOfPages = ceil($notesCount / $itemsPerPage);
+
+$page = $_GET['page'] ?? 1;
+
+$notes = $noteObject->getNotes($itemsPerPage, $page);
+
+if ($notes == [] && $page != 1) {
+    header('location:dashboard.php');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,6 +70,22 @@ $notes = $noteObject->getNotes();
     </nav>
     <div class="container">
         <h3 class="text-center mt-3 text-light">My Diary</h3>
+        <div class="d-flex align-items-center">
+            <form id="paginationForm" action="" class="utility" method="post">
+                <label for="itemsPerPage" class="text-light">Items Per Page</label>
+                <select class="form-select" name="itemsPerPage" id="itemsPerPage">
+                    <?php
+                    $paginationOptions = ['5', '10', '15', '25', '50'];
+                    foreach ($paginationOptions as $value):
+                        $selected = ($value == $itemsPerPage) ? 'selected' : '';
+                        ?>
+                        <option value="<?php echo $value; ?>" <?= $selected; ?>>
+                            <?php echo $value; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </form>
+        </div>
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success">
                 <?php
@@ -94,15 +123,39 @@ $notes = $noteObject->getNotes();
                     </div>
                 <?php endforeach; ?>
             </div>
+            <nav aria-label="...">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link">Previous</a>
+                    </li>
+                    <?php for ($pageNumber = 1; $pageNumber <= $numberOfPages; $pageNumber++): ?>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<?php echo $pageNumber; ?>">
+                                <?php echo $pageNumber ?>
+                            </a>
+                        </li>
+                    <?php endfor; ?>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
         <?php else: ?>
             <div class="alert alert-info text-center my-3">
                 You have no notes <a href="add-note.php">create one</a>
             </div>
-        <?php endif; ?>    
+        <?php endif; ?>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
         crossorigin="anonymous"></script>
+    <script>
+        let itemsPerPage = document.querySelector('#itemsPerPage');
+        let paginationForm = document.querySelector('#paginationForm');
+        itemsPerPage.addEventListener('change', function () {
+            paginationForm.submit();
+        });
+    </script>
 </body>
 
 </html>
