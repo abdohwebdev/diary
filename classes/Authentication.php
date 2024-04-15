@@ -111,10 +111,4 @@ class Authentication
             }
         }
     }
-
-    private function validateEmailSyntax(string $email)
-    {
-        filter_var($email, FILTER_VALIDATE_EMAIL) ?: $this->errors["email"][] = "email is not valid";
-    }
-
 }

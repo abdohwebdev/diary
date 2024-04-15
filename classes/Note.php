@@ -51,10 +51,21 @@ class Note
     /**
      * get user notes method
      */
-    public function getNotes(int $itemsPerPage = 100, int $page = 1)
+    public function getNotes(int $itemsPerPage = 20, int $page = 1, string $sortBy = 'created_at', string $sortType = 'DESC')
     {
+        $allowedSortColumns = ['created_at', 'updated_at', 'title'];
+        $allowedSortTypes = ['ASC', 'DESC'];
+
+        if (!in_array($sortBy, $allowedSortColumns)) {
+            $sortBy = 'created_at';
+        }
+
+        if (!in_array($sortType, $allowedSortTypes)) {
+            $sortType = 'DESC';
+        }
+        
         $offset = ($page - 1) * $itemsPerPage;
-        $statement = $this->pdo->prepare("SELECT * FROM notes WHERE user_id = :user_id ORDER BY id DESC LIMIT $itemsPerPage OFFSET $offset");
+        $statement = $this->pdo->prepare("SELECT * FROM notes WHERE user_id = :user_id ORDER BY $sortBy $sortType LIMIT $itemsPerPage OFFSET $offset");
         $statement->bindValue(':user_id', $this->userId);
         $statement->execute();
         return $statement->fetchAll();

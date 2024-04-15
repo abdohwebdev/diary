@@ -2,9 +2,11 @@
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
+
 spl_autoload_register(function ($class_name) {
     include 'classes/' . $class_name . '.php';
 });
+
 session_start();
 if (!isset($_SESSION['userId'])) {
     header("location:index.php");
@@ -21,17 +23,23 @@ $userId = $_SESSION['userId'];
 $connection = new Connection();
 $noteObject = new Note($connection->pdo, $userId);
 
+// Sort
+$_SESSION['sortBy'] = $_POST['sortBy'] ?? $_SESSION['sortBy'] ?? '';
 
+$sortBy = $_SESSION['sortBy'];
+
+// Pagination 
 $notesCount = $noteObject->countNotesNumber();
 
 $_SESSION['itemsPerPage'] = $_POST['itemsPerPage'] ?? $_SESSION['itemsPerPage'] ?? 5;
+
 $itemsPerPage = $_SESSION['itemsPerPage'];
 
 $numberOfPages = ceil($notesCount / $itemsPerPage);
 
 $page = $_GET['page'] ?? 1;
 
-$notes = $noteObject->getNotes($itemsPerPage, $page);
+$notes = $noteObject->getNotes($itemsPerPage, $page,$sortBy);
 
 if ($notes == [] && $page != 1) {
     header('location:dashboard.php');
@@ -71,13 +79,27 @@ if ($notes == [] && $page != 1) {
     <div class="container">
         <h3 class="text-center mt-3 text-light">My Diary</h3>
         <div class="d-flex align-items-center">
-            <form id="paginationForm" action="" class="utility" method="post">
+            <form id="paginationForm" action="" class="utility me-4" method="post">
                 <label for="itemsPerPage" class="text-light">Items Per Page</label>
                 <select class="form-select" name="itemsPerPage" id="itemsPerPage">
                     <?php
                     $paginationOptions = ['5', '10', '15', '25', '50'];
                     foreach ($paginationOptions as $value):
                         $selected = ($value == $itemsPerPage) ? 'selected' : '';
+                        ?>
+                        <option value="<?php echo $value; ?>" <?= $selected; ?>>
+                            <?php echo $value; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </form>
+            <form id="sortForm" action="" class="utility me-4" method="post">
+                <label for="sortBy" class="text-light">Sort By</label>
+                <select class="form-select" name="sortBy" id="sortBy">
+                    <?php
+                    $sortOptions = ['created_at', 'updated_at', 'title'];
+                    foreach ($sortOptions as $value):
+                        $selected = ($value == $sortBy) ? 'selected' : '';
                         ?>
                         <option value="<?php echo $value; ?>" <?= $selected; ?>>
                             <?php echo $value; ?>
@@ -154,6 +176,12 @@ if ($notes == [] && $page != 1) {
         let paginationForm = document.querySelector('#paginationForm');
         itemsPerPage.addEventListener('change', function () {
             paginationForm.submit();
+        });
+        
+        let sortBy = document.querySelector('#sortBy');
+        let sortForm = document.querySelector('#sortForm');
+        sortBy.addEventListener('change', function () {
+            sortForm.submit();
         });
     </script>
 </body>
