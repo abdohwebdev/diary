@@ -6,6 +6,9 @@ This is a PHP diary web app
 1. Signup and Login
 2. CRUD operations (Create - Read - Update - Delete)
 3. Success and Error messages
+4. Pagaination and Pagination selector
+5. Sorting
+6. Filtering Notes From Date to Date
 
 ### Screen Shots
 #### 1. Signup and login page
