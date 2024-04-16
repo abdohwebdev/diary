@@ -41,7 +41,14 @@ $numberOfPages = ceil($notesCount / $itemsPerPage);
 
 $page = $_GET['page'] ?? 1;
 
-$notes = $noteObject->getNotes($itemsPerPage, $page, $sortBy, $sortType);
+// filtering 
+$_SESSION['fromDate'] = $_POST['fromDate'] ?? $_SESSION['fromDate'] ?? '2024-01-01';
+$_SESSION['toDate'] = $_POST['toDate'] ?? $_SESSION['toDate'] ?? date('Y-m-d', time());
+
+$fromDate = $_SESSION['fromDate'];
+$toDate = $_SESSION['toDate'];
+
+$notes = $noteObject->getNotes($itemsPerPage, $page, $sortBy, $sortType, $fromDate, $toDate);
 
 if ($notes == [] && $page != 1) {
     header('location:dashboard.php');
@@ -124,6 +131,21 @@ if ($notes == [] && $page != 1) {
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                    </div>
+                </div>
+            </form>
+            <form id="filterForm" action="" class="utility me-4" method="post">
+                <div class="d-flex align-items-center">
+                    <div class="me-4">
+                        <label for="fromDate" class="text-light">From</label>
+                        <input class="form-control" type="date" name="fromDate" value="<?php echo $fromDate; ?>">
+                    </div>
+                    <div class="me-4">
+                        <label for="toDate" class="text-light">To</label>
+                        <input class="form-control" type="date" name="toDate" value=<?php echo $toDate; ?>>
+                    </div>
+                    <div class="align-self-end">
+                        <input class="btn btn-success" type="submit" name="filter" value="Filter">
                     </div>
                 </div>
             </form>
