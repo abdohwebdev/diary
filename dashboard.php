@@ -101,7 +101,7 @@ if ($notes == [] && $page != 1) {
                         <label for="sortBy" class="text-light">Sort By</label>
                         <select class="form-select" name="sortBy" id="sortBy">
                             <?php
-                            $sortOptions = ['Create Date' => 'created_at','Update Date' =>  'updated_at','Title' =>  'title'];
+                            $sortOptions = ['Create Date' => 'created_at', 'Update Date' => 'updated_at', 'Title' => 'title'];
                             foreach ($sortOptions as $key => $value):
                                 $selected = ($value == $sortBy) ? 'selected' : '';
                                 ?>
@@ -167,8 +167,9 @@ if ($notes == [] && $page != 1) {
             </div>
             <nav aria-label="...">
                 <ul class="pagination justify-content-center">
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#">Previous</a>
+                    <?php $previousDisabled = ($page <= 1) ? 'disabled' : ''; ?>
+                    <li class="page-item <?php echo $previousDisabled; ?>">
+                        <a class="page-link" href="?page=<?php echo $page - 1; ?>">Previous</a>
                     </li>
                     <?php for ($pageNumber = 1; $pageNumber <= $numberOfPages; $pageNumber++): ?>
                         <li class="page-item">
@@ -177,8 +178,9 @@ if ($notes == [] && $page != 1) {
                             </a>
                         </li>
                     <?php endfor; ?>
-                    <li class="page-item">
-                        <a class="page-link" href="#">Next</a>
+                    <?php $nextDisabled = ($page >= $numberOfPages) ? 'disabled' : ''; ?>
+                    <li class="page-item <?php echo $nextDisabled; ?>">
+                        <a class="page-link" href="?page=<?php echo $page + 1; ?>">Next</a>
                     </li>
                 </ul>
             </nav>
