@@ -12,21 +12,23 @@ if (!isset($_SESSION['userId'])) {
     header("location:index.php");
 }
 
+$userId = $_SESSION['userId'];
+
+$connection = new Connection();
+
 if (isset($_POST['logout'])) {
-    $connection = new Connection();
     $authentication = new Authentication($connection->pdo);
     $authentication->logOut();
 }
 
-$userId = $_SESSION['userId'];
-
-$connection = new Connection();
 $noteObject = new Note($connection->pdo, $userId);
 
 // Sort
 $_SESSION['sortBy'] = $_POST['sortBy'] ?? $_SESSION['sortBy'] ?? '';
+$_SESSION['sortType'] = $_POST['sortType'] ?? $_SESSION['sortType'] ?? '';
 
 $sortBy = $_SESSION['sortBy'];
+$sortType = $_SESSION['sortType'];
 
 // Pagination 
 $notesCount = $noteObject->countNotesNumber();
@@ -39,7 +41,7 @@ $numberOfPages = ceil($notesCount / $itemsPerPage);
 
 $page = $_GET['page'] ?? 1;
 
-$notes = $noteObject->getNotes($itemsPerPage, $page,$sortBy);
+$notes = $noteObject->getNotes($itemsPerPage, $page, $sortBy, $sortType);
 
 if ($notes == [] && $page != 1) {
     header('location:dashboard.php');
@@ -94,18 +96,36 @@ if ($notes == [] && $page != 1) {
                 </select>
             </form>
             <form id="sortForm" action="" class="utility me-4" method="post">
-                <label for="sortBy" class="text-light">Sort By</label>
-                <select class="form-select" name="sortBy" id="sortBy">
-                    <?php
-                    $sortOptions = ['created_at', 'updated_at', 'title'];
-                    foreach ($sortOptions as $value):
-                        $selected = ($value == $sortBy) ? 'selected' : '';
-                        ?>
-                        <option value="<?php echo $value; ?>" <?= $selected; ?>>
-                            <?php echo $value; ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <div class="d-flex align-items-center">
+                    <div class="me-4">
+                        <label for="sortBy" class="text-light">Sort By</label>
+                        <select class="form-select" name="sortBy" id="sortBy">
+                            <?php
+                            $sortOptions = ['Create Date' => 'created_at','Update Date' =>  'updated_at','Title' =>  'title'];
+                            foreach ($sortOptions as $key => $value):
+                                $selected = ($value == $sortBy) ? 'selected' : '';
+                                ?>
+                                <option value="<?php echo $value; ?>" <?= $selected; ?>>
+                                    <?php echo $key; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="sortType" class="text-light">Sort Type</label>
+                        <select class="form-select" name="sortType" id="sortType">
+                            <?php
+                            $sortTypes = ['ASC', 'DESC'];
+                            foreach ($sortTypes as $value):
+                                $selected = ($value == $sortType) ? 'selected' : '';
+                                ?>
+                                <option value="<?php echo $value; ?>" <?= $selected; ?>>
+                                    <?php echo $value; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
             </form>
         </div>
         <?php if (isset($_SESSION['success'])): ?>
@@ -148,7 +168,7 @@ if ($notes == [] && $page != 1) {
             <nav aria-label="...">
                 <ul class="pagination justify-content-center">
                     <li class="page-item disabled">
-                        <a class="page-link">Previous</a>
+                        <a class="page-link" href="#">Previous</a>
                     </li>
                     <?php for ($pageNumber = 1; $pageNumber <= $numberOfPages; $pageNumber++): ?>
                         <li class="page-item">
@@ -174,15 +194,21 @@ if ($notes == [] && $page != 1) {
     <script>
         let itemsPerPage = document.querySelector('#itemsPerPage');
         let paginationForm = document.querySelector('#paginationForm');
-        itemsPerPage.addEventListener('change', function () {
-            paginationForm.submit();
-        });
-        
+        submitOnChange([itemsPerPage], paginationForm);
+
         let sortBy = document.querySelector('#sortBy');
+        let sortType = document.querySelector('#sortType');
         let sortForm = document.querySelector('#sortForm');
-        sortBy.addEventListener('change', function () {
-            sortForm.submit();
-        });
+        submitOnChange([sortBy, sortType], sortForm);
+
+        function submitOnChange(fields, form) {
+            fields.forEach(field => {
+                field.addEventListener('change', function () {
+                    form.submit();
+                });
+            });
+        }
+
     </script>
 </body>
 
