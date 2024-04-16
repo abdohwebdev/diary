@@ -43,7 +43,7 @@ $page = $_GET['page'] ?? 1;
 
 // filtering 
 $_SESSION['fromDate'] = $_POST['fromDate'] ?? $_SESSION['fromDate'] ?? '2024-01-01';
-$_SESSION['toDate'] = $_POST['toDate'] ?? $_SESSION['toDate'] ?? date('Y-m-d', time());
+$_SESSION['toDate'] = $_POST['toDate'] ?? $_SESSION['toDate'] ?? date('Y-m-d', strtotime('+1 day')); // add 1 day to get this day notes also
 
 $fromDate = $_SESSION['fromDate'];
 $toDate = $_SESSION['toDate'];
@@ -87,7 +87,7 @@ if ($notes == [] && $page != 1) {
     </nav>
     <div class="container">
         <h3 class="text-center mt-3 text-light">My Diary</h3>
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center mb-3">
             <form id="paginationForm" action="" class="utility me-4" method="post">
                 <label for="itemsPerPage" class="text-light">Items Per Page</label>
                 <select class="form-select" name="itemsPerPage" id="itemsPerPage">
